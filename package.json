@@ -1,7 +1,7 @@
 {
   "name": "skiplet",
   "productName": "Skiplet",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A compact, keyboard-friendly audio player for macOS",
   "license": "MIT",
   "main": "src/main.js",
@@ -10,6 +10,8 @@
     "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js",
     "build:app": "electron-builder --mac dir",
     "build:dmg": "electron-builder --mac dmg",
+    "build:dmg:x64": "electron-builder --mac dmg --x64",
+    "build:dmg:arm64": "electron-builder --mac dmg --arm64",
     "build:universal": "electron-builder --mac dir --universal",
     "build:dmg:universal": "electron-builder --mac dmg --universal"
   },
@@ -20,9 +22,16 @@
   "build": {
     "appId": "com.junha.skiplet",
     "productName": "Skiplet",
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
     "asar": true,
-    "directories": { "output": "dist" },
-    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
     "mac": {
       "category": "public.app-category.music",
       "icon": "assets/skiplet.icns",

@@ -2,6 +2,20 @@
 
 Skiplet은 macOS용 소형 오디오 플레이어입니다. 앱을 보고 있는 동안 키보드만으로 재생 위치와 볼륨을 빠르게 조절할 수 있습니다.
 
+## 다운로드
+
+최신 안정 버전은 `v1.0.0`입니다. 자신의 Mac에 맞는 DMG를 내려받으세요.
+
+| 버전 | 대상 | 다운로드 |
+| --- | --- | --- |
+| Universal | Intel 및 Apple Silicon 모두 지원 | [Skiplet-1.0.0-universal.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-universal.dmg) |
+| Apple Silicon | M1, M2, M3, M4 등 | [Skiplet-1.0.0-arm64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-arm64.dmg) |
+| Intel | Intel 프로세서 Mac | [Skiplet-1.0.0-x64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-x64.dmg) |
+
+Mac의 프로세서를 모르겠다면 화면 왼쪽 위의 Apple 메뉴에서 `이 Mac에 관하여`를 확인하거나 Universal 버전을 사용하세요.
+
+DMG를 연 다음 `Skiplet.app`을 `Applications` 폴더로 드래그하면 설치됩니다. 현재 Release 파일은 코드 서명되지 않은 오픈소스 빌드이므로, macOS가 첫 실행을 차단하면 Finder에서 앱을 Control-클릭한 뒤 `열기`를 선택해야 할 수 있습니다.
+
 ## 주요 기능
 
 - MP3 파일 선택 및 창 전체 드래그 앤 드롭
@@ -28,32 +42,65 @@ Skiplet은 macOS용 소형 오디오 플레이어입니다. 앱을 보고 있는
 
 ## 요구 사항
 
-- macOS 12 Monterey 이상
-- Node.js 22 이상
-- npm
+- 앱 실행: macOS 12 Monterey 이상
+- 소스 빌드: Git, Node.js 22 이상, npm
 
 현재 프로젝트는 Intel Mac에서 개발됐습니다. 별도로 아키텍처를 지정하지 않은 일반 빌드는 빌드를 실행하는 Mac의 CPU 아키텍처를 따릅니다.
 
-## 개발 환경 실행
+## 저장소 클론 및 개발 환경 실행
 
-저장소를 클론한 뒤 다음을 실행합니다.
+### 1. 개발 도구 확인
+
+터미널에서 Git, Node.js, npm이 설치됐는지 확인합니다.
 
 ```bash
-npm install
+git --version
+node --version
+npm --version
+```
+
+Node.js 버전은 `v22` 이상이어야 합니다. 앱을 실행만 하는 사용자는 Node.js나 npm을 설치할 필요가 없습니다.
+
+### 2. 저장소 클론
+
+GitHub에서 저장소를 내려받고 프로젝트 폴더로 이동합니다.
+
+```bash
+git clone https://github.com/midopa-dept/skiplet.git
+cd skiplet
+```
+
+### 3. 의존성 설치
+
+`package-lock.json`에 기록된 정확한 버전으로 설치합니다.
+
+```bash
+npm ci
+```
+
+일반적인 로컬 개발 중 의존성을 갱신해야 한다면 `npm install`을 사용할 수 있지만, 재현 가능한 첫 설치와 CI에서는 `npm ci`를 권장합니다.
+
+### 4. 코드 검사
+
+```bash
+npm run check
+```
+
+메인 프로세스, preload, renderer JavaScript의 구문을 검사합니다.
+
+### 5. 개발 모드 실행
+
+```bash
 npm start
 ```
 
-Finder에서 실행하려면 최초 한 번 `setup.command`를 실행한 다음 `start.command`를 실행할 수도 있습니다.
+Electron 개발 창이 열리면 MP3 파일 선택, 드래그 앤 드롭, 키보드 조작을 테스트할 수 있습니다.
+
+Finder 중심으로 사용하려면 `setup.command`로 의존성을 설치하고 `start.command`로 실행할 수도 있습니다.
 
 ```bash
 ./setup.command
 ./start.command
-```
-
-코드 구문 검사는 다음 명령으로 실행합니다.
-
-```bash
-npm run check
 ```
 
 ## `.app` 빌드
@@ -133,19 +180,31 @@ lipo -info "dist/mac-universal/Skiplet.app/Contents/Frameworks/Electron Framewor
 
 ## `.dmg` 빌드
 
-배포용 디스크 이미지는 다음 명령으로 만듭니다.
+세 아키텍처용 배포 DMG를 각각 만들 수 있습니다.
 
 ```bash
-npm run build:dmg
-```
-
-결과물은 `dist/` 폴더에 생성됩니다.
-
-Intel과 Apple Silicon을 모두 지원하는 Universal DMG는 다음 명령으로 만듭니다.
-
-```bash
+npm run build:dmg:x64
+npm run build:dmg:arm64
 npm run build:dmg:universal
 ```
+
+각 명령은 다음 파일을 `dist/`에 생성합니다.
+
+```text
+dist/Skiplet-1.0.0-x64.dmg
+dist/Skiplet-1.0.0-arm64.dmg
+dist/Skiplet-1.0.0-universal.dmg
+```
+
+모든 빌드를 연속으로 실행하려면 다음과 같이 실행합니다.
+
+```bash
+npm run build:dmg:x64
+npm run build:dmg:arm64
+npm run build:dmg:universal
+```
+
+첫 빌드에서는 대상 아키텍처별 Electron 바이너리를 내려받으므로 시간이 더 걸릴 수 있습니다. `dist/`는 Git에 커밋하지 않으며, 완성된 DMG는 GitHub Release의 바이너리 자산으로 업로드합니다.
 
 DMG는 앱을 담아 전달하기 위한 디스크 이미지입니다. DMG 자체가 앱의 아키텍처를 바꾸는 것은 아니므로, 모든 Mac을 네이티브로 지원하려면 DMG 안의 `Skiplet.app`도 Universal 빌드여야 합니다.
 
