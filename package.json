@@ -1,0 +1,33 @@
+{
+  "name": "skiplet",
+  "productName": "Skiplet",
+  "version": "0.1.0",
+  "description": "A compact, keyboard-friendly audio player for macOS",
+  "license": "MIT",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js",
+    "build:app": "electron-builder --mac dir",
+    "build:dmg": "electron-builder --mac dmg",
+    "build:universal": "electron-builder --mac dir --universal",
+    "build:dmg:universal": "electron-builder --mac dmg --universal"
+  },
+  "devDependencies": {
+    "electron": "43.4.1",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.junha.skiplet",
+    "productName": "Skiplet",
+    "asar": true,
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "assets/**/*", "package.json"],
+    "mac": {
+      "category": "public.app-category.music",
+      "icon": "assets/skiplet.icns",
+      "identity": null,
+      "minimumSystemVersion": "12.0"
+    }
+  }
+}

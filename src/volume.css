@@ -1,0 +1,11 @@
+.volume-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 190px;
+  margin: 13px auto 0;
+  color: #777b75;
+}
+.volume-row svg { width: 16px; flex: 0 0 auto; }
+.volume-row input { flex: 1; min-width: 0; }
+.volume-row span { width: 24px; text-align: right; font-size: 10px; font-variant-numeric: tabular-nums; }

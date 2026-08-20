@@ -1,0 +1,276 @@
+const audio = document.querySelector('#audio');
+const openButton = document.querySelector('#openButton');
+const dropZone = document.querySelector('#dropZone');
+const fileName = document.querySelector('#fileName');
+const status = document.querySelector('#status');
+const seek = document.querySelector('#seek');
+const currentTime = document.querySelector('#currentTime');
+const duration = document.querySelector('#duration');
+const toggleButton = document.querySelector('#toggle');
+const backwardButton = document.querySelector('#backward');
+const forwardButton = document.querySelector('#forward');
+const seekSecondsInput = document.querySelector('#seekSeconds');
+const volumeInput = document.querySelector('#volume');
+const volumeValue = document.querySelector('#volumeValue');
+const shortcutDialog = document.querySelector('#shortcutDialog');
+const shortcutForm = document.querySelector('#shortcutForm');
+const shortcutError = document.querySelector('#shortcutError');
+const shortcutInputs = [...document.querySelectorAll('.shortcut-input')];
+let currentShortcuts = {};
+let seekSeconds = 10;
+let droppedAudioUrl = null;
+const playIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="m9 6 9 6-9 6V6Z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="M7.5 6h3v12h-3zM13.5 6h3v12h-3z"/></svg>';
+
+const keyNames = {
+  ' ': 'Space', Space: 'Space', ArrowLeft: 'Left', ArrowRight: 'Right', ArrowUp: 'Up', ArrowDown: 'Down',
+  Escape: 'Esc', Enter: 'Return', Backspace: 'Backspace', Delete: 'Delete', Tab: 'Tab',
+  Home: 'Home', End: 'End', PageUp: 'PageUp', PageDown: 'PageDown'
+};
+
+function acceleratorFromEvent(event) {
+  const key = keyNames[event.key]
+    || (/^F([1-9]|1[0-9]|2[0-4])$/.test(event.key) ? event.key : null)
+    || (event.code.startsWith('Key') ? event.code.slice(3) : null)
+    || (event.code.startsWith('Digit') ? event.code.slice(5) : null);
+  if (!key) return null;
+
+  const modifiers = [];
+  if (event.metaKey) modifiers.push('Command');
+  if (event.ctrlKey) modifiers.push('Control');
+  if (event.altKey) modifiers.push('Option');
+  if (event.shiftKey) modifiers.push('Shift');
+  return [...modifiers, key].join('+');
+}
+
+function displayShortcut(accelerator) {
+  return accelerator
+    .replaceAll('CommandOrControl', '⌘')
+    .replaceAll('Command', '⌘')
+    .replaceAll('Control', '⌃')
+    .replaceAll('Option', '⌥')
+    .replaceAll('Shift', '⇧')
+    .replaceAll('Space', 'Space')
+    .replaceAll('Left', '←').replaceAll('Right', '→')
+    .replaceAll('Up', '↑').replaceAll('Down', '↓')
+    .replaceAll('+', ' ');
+}
+
+function renderShortcuts(shortcuts) {
+  currentShortcuts = { ...shortcuts };
+  for (const input of shortcutInputs) {
+    input.dataset.accelerator = shortcuts[input.dataset.command];
+    input.value = displayShortcut(shortcuts[input.dataset.command]);
+  }
+  renderShortcutSummary();
+}
+
+function renderShortcutSummary() {
+  if (!currentShortcuts.toggle) return;
+  document.querySelector('#shortcutSummary').innerHTML = `
+    <span>재생 <kbd>${displayShortcut(currentShortcuts.toggle)}</kbd></span>
+    <span>−${seekSeconds}초 <kbd>${displayShortcut(currentShortcuts.backward)}</kbd></span>
+    <span>+${seekSeconds}초 <kbd>${displayShortcut(currentShortcuts.forward)}</kbd></span>
+    <span>볼륨 <kbd>${displayShortcut(currentShortcuts.volumeDown)}</kbd><kbd>${displayShortcut(currentShortcuts.volumeUp)}</kbd></span>`;
+}
+
+function formatTime(seconds) {
+  if (!Number.isFinite(seconds)) return '0:00';
+  const minutes = Math.floor(seconds / 60);
+  const remainder = Math.floor(seconds % 60).toString().padStart(2, '0');
+  return `${minutes}:${remainder}`;
+}
+
+function loadAudio(file) {
+  if (droppedAudioUrl && droppedAudioUrl !== file.url) {
+    URL.revokeObjectURL(droppedAudioUrl);
+    droppedAudioUrl = null;
+  }
+  audio.src = file.url;
+  fileName.textContent = file.name;
+  status.textContent = '재생 준비됨';
+  audio.play().catch(() => {
+    status.textContent = '재생 버튼을 눌러 시작하세요';
+  });
+}
+
+function togglePlayback() {
+  if (!audio.src) return;
+  if (audio.paused) audio.play();
+  else audio.pause();
+}
+
+function move(seconds) {
+  if (!audio.src) return;
+  const end = Number.isFinite(audio.duration) ? audio.duration : Infinity;
+  audio.currentTime = Math.max(0, Math.min(audio.currentTime + seconds, end));
+}
+
+openButton.addEventListener('click', async () => {
+  const file = await window.playerAPI.chooseAudio();
+  if (file) loadAudio(file);
+});
+
+document.querySelector('#settingsButton').addEventListener('click', () => {
+  shortcutError.textContent = '';
+  renderShortcuts(currentShortcuts);
+  shortcutDialog.showModal();
+});
+document.querySelector('#closeSettings').addEventListener('click', () => shortcutDialog.close());
+
+for (const input of shortcutInputs) {
+  input.addEventListener('keydown', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const accelerator = acceleratorFromEvent(event);
+    if (!accelerator) {
+      shortcutError.textContent = '지원되는 키를 눌러주세요.';
+      return;
+    }
+    shortcutError.textContent = '';
+    input.dataset.accelerator = accelerator;
+    input.value = displayShortcut(accelerator);
+  });
+}
+
+shortcutForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const candidate = Object.fromEntries(shortcutInputs.map((input) => [input.dataset.command, input.dataset.accelerator]));
+  const result = await window.playerAPI.setShortcuts(candidate);
+  if (!result.ok) {
+    shortcutError.textContent = result.error;
+    return;
+  }
+  renderShortcuts(result.shortcuts);
+  shortcutDialog.close();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (shortcutDialog.open || event.target.matches('input, button')) return;
+  const accelerator = acceleratorFromEvent(event);
+  if (!accelerator) return;
+  const command = Object.keys(currentShortcuts).find((name) => currentShortcuts[name] === accelerator);
+  if (!command) return;
+  event.preventDefault();
+  if (command === 'toggle') togglePlayback();
+  if (command === 'backward') move(-seekSeconds);
+  if (command === 'forward') move(seekSeconds);
+  if (command === 'volumeUp') changeVolume(0.05);
+  if (command === 'volumeDown') changeVolume(-0.05);
+});
+
+document.querySelector('#resetShortcuts').addEventListener('click', async () => {
+  const result = await window.playerAPI.resetShortcuts();
+  if (!result.ok) shortcutError.textContent = result.error;
+  else renderShortcuts(result.shortcuts);
+});
+
+document.querySelector('#toggle').addEventListener('click', togglePlayback);
+backwardButton.addEventListener('click', () => move(-seekSeconds));
+forwardButton.addEventListener('click', () => move(seekSeconds));
+
+function applySeekSeconds(value) {
+  seekSeconds = value;
+  seekSecondsInput.value = value;
+  document.querySelector('#backwardValue').textContent = value;
+  document.querySelector('#forwardValue').textContent = value;
+  backwardButton.setAttribute('aria-label', `${value}초 뒤로`);
+  forwardButton.setAttribute('aria-label', `${value}초 앞으로`);
+  renderShortcutSummary();
+}
+
+seekSecondsInput.addEventListener('change', async () => {
+  const result = await window.playerAPI.setSeekSeconds(seekSecondsInput.value);
+  if (!result.ok) {
+    status.textContent = result.error;
+    seekSecondsInput.value = seekSeconds;
+    return;
+  }
+  applySeekSeconds(result.seekSeconds);
+});
+
+function applyVolume(value) {
+  const nextVolume = Math.max(0, Math.min(1, Number(value)));
+  audio.volume = nextVolume;
+  volumeInput.value = nextVolume;
+  volumeValue.textContent = Math.round(nextVolume * 100);
+}
+
+function changeVolume(delta) {
+  applyVolume(audio.volume + delta);
+  window.playerAPI.setVolume(audio.volume);
+}
+
+volumeInput.addEventListener('input', () => applyVolume(volumeInput.value));
+volumeInput.addEventListener('change', () => window.playerAPI.setVolume(audio.volume));
+
+audio.addEventListener('play', () => {
+  document.body.classList.add('is-playing');
+  toggleButton.innerHTML = pauseIcon;
+  toggleButton.setAttribute('aria-label', '일시정지');
+  status.textContent = '재생 중';
+});
+
+audio.addEventListener('pause', () => {
+  document.body.classList.remove('is-playing');
+  toggleButton.innerHTML = playIcon;
+  toggleButton.setAttribute('aria-label', '재생');
+  if (audio.src && !audio.ended) status.textContent = '일시정지';
+});
+
+audio.addEventListener('ended', () => {
+  document.body.classList.remove('is-playing');
+  status.textContent = '재생 완료';
+  toggleButton.innerHTML = playIcon;
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  seek.max = audio.duration;
+  duration.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener('timeupdate', () => {
+  seek.value = audio.currentTime;
+  currentTime.textContent = formatTime(audio.currentTime);
+});
+
+seek.addEventListener('input', () => {
+  if (audio.src) audio.currentTime = Number(seek.value);
+});
+
+for (const eventName of ['dragenter', 'dragover']) {
+  document.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    document.body.classList.add('dragging');
+  });
+}
+
+for (const eventName of ['dragleave', 'drop']) {
+  document.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    if (eventName === 'drop' || event.relatedTarget === null) document.body.classList.remove('dragging');
+  });
+}
+
+document.addEventListener('drop', (event) => {
+  const supportedExtensions = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'];
+  const file = [...event.dataTransfer.files].find((item) => {
+    const extension = item.name.split('.').pop()?.toLowerCase();
+    return item.type.startsWith('audio/') || supportedExtensions.includes(extension);
+  });
+  if (!file) {
+    status.textContent = '지원되는 오디오 파일이 아닙니다';
+    return;
+  }
+  try {
+    if (droppedAudioUrl) URL.revokeObjectURL(droppedAudioUrl);
+    droppedAudioUrl = URL.createObjectURL(file);
+    loadAudio({ name: file.name, url: droppedAudioUrl });
+  } catch (error) {
+    status.textContent = `파일을 열지 못했습니다: ${error.message}`;
+  }
+});
+
+window.playerAPI.getShortcuts().then(renderShortcuts);
+window.playerAPI.getSeekSeconds().then(applySeekSeconds);
+window.playerAPI.getVolume().then(applyVolume);
