@@ -4,19 +4,17 @@ Skiplet은 macOS용 소형 오디오 플레이어입니다. 로컬 및 글로벌
 
 ## 다운로드
 
-최신 안정 버전은 `v1.1.0`입니다. 자신의 Mac에 맞는 DMG를 내려받으세요.
+최신 안정 버전은 `v1.2.0`입니다. 자신의 Mac에 맞는 DMG를 내려받으세요.
 
 | 버전 | 대상 | 다운로드 |
 | --- | --- | --- |
-| Universal | Intel 및 Apple Silicon 모두 지원 | [Skiplet-1.1.0-universal.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-universal.dmg) |
-| Apple Silicon | M1, M2, M3, M4 등 | [Skiplet-1.1.0-arm64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-arm64.dmg) |
-| Intel | Intel 프로세서 Mac | [Skiplet-1.1.0-x64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-x64.dmg) |
+| Universal | Intel 및 Apple Silicon 모두 지원 | [Skiplet-1.2.0-universal.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.2.0/Skiplet-1.2.0-universal.dmg) |
+| Apple Silicon | M1, M2, M3, M4 등 | [Skiplet-1.2.0-arm64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.2.0/Skiplet-1.2.0-arm64.dmg) |
+| Intel | Intel 프로세서 Mac | [Skiplet-1.2.0-x64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.2.0/Skiplet-1.2.0-x64.dmg) |
 
 Mac의 프로세서를 모르겠다면 화면 왼쪽 위의 Apple 메뉴에서 `이 Mac에 관하여`를 확인하거나 Universal 버전을 사용하세요.
 
 DMG를 연 다음 `Skiplet.app`을 `Applications` 폴더로 드래그하면 설치됩니다. 현재 Release 파일은 코드 서명되지 않은 오픈소스 빌드이므로, macOS가 첫 실행을 차단하면 Finder에서 앱을 Control-클릭한 뒤 `열기`를 선택해야 할 수 있습니다.
-
-> 창 고정, 재생목록 시간 및 순서 변경 기능은 현재 `feature/window-pin-queue-time` 개발 브랜치에 포함되어 있으며 다음 정식 릴리스부터 제공될 예정입니다.
 
 ## 주요 기능
 
@@ -277,9 +275,9 @@ npm run build:dmg:universal
 각 명령은 다음 파일을 `dist/`에 생성합니다.
 
 ```text
-dist/Skiplet-1.1.0-x64.dmg
-dist/Skiplet-1.1.0-arm64.dmg
-dist/Skiplet-1.1.0-universal.dmg
+dist/Skiplet-1.2.0-x64.dmg
+dist/Skiplet-1.2.0-arm64.dmg
+dist/Skiplet-1.2.0-universal.dmg
 ```
 
 모든 빌드를 연속으로 실행하려면 다음과 같이 실행합니다.
@@ -313,6 +311,10 @@ Skiplet의 사용자 설정은 Electron의 macOS 사용자 데이터 경로에 J
 ## 개발
 
 Skiplet은 [OpenAI Codex](https://developers.openai.com/codex/)와 함께 설계하고 개발했습니다.
+
+## 변경 이력
+
+버전별 추가 기능과 변경 사항은 [CHANGELOG.md](CHANGELOG.md)에서 확인할 수 있습니다.
 
 ## 라이선스
 
