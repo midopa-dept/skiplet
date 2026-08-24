@@ -67,9 +67,9 @@ function registerShortcuts(candidate) {
 function createWindow() {
   const { width: workWidth, height: workHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: Math.min(560, workWidth - 40),
+    width: Math.min(520, workWidth - 40),
     height: Math.min(720, workHeight - 40),
-    minWidth: 480,
+    minWidth: 450,
     minHeight: 620,
     center: true,
     title: 'Skiplet',
