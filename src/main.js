@@ -40,13 +40,15 @@ function saveSettings() {
 function createWindow() {
   const { width: workWidth, height: workHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: Math.min(460, workWidth - 40),
-    height: Math.min(500, workHeight - 40),
-    minWidth: 400,
-    minHeight: 450,
+    width: Math.min(620, workWidth - 40),
+    height: Math.min(720, workHeight - 40),
+    minWidth: 520,
+    minHeight: 620,
     center: true,
     title: 'Skiplet',
     backgroundColor: '#171817',
+    titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 18, y: 18 },
     icon: path.join(__dirname, '..', 'assets', 'skiplet-icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),

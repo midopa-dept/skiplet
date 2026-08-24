@@ -12,9 +12,9 @@ const forwardButton = document.querySelector('#forward');
 const seekSecondsInput = document.querySelector('#seekSeconds');
 const volumeInput = document.querySelector('#volume');
 const volumeValue = document.querySelector('#volumeValue');
-const playlistPanel = document.querySelector('#playlistPanel');
 const playlistElement = document.querySelector('#playlist');
 const playlistCount = document.querySelector('#playlistCount');
+const playbackState = document.querySelector('#playbackState');
 const shortcutDialog = document.querySelector('#shortcutDialog');
 const shortcutForm = document.querySelector('#shortcutForm');
 const shortcutError = document.querySelector('#shortcutError');
@@ -133,6 +133,7 @@ function playTrack(index, autoplay = true) {
   audio.src = track.url;
   fileName.textContent = track.name;
   status.textContent = '재생 준비됨';
+  playbackState.textContent = '준비';
   seek.value = 0;
   currentTime.textContent = '0:00';
   renderPlaylist();
@@ -165,6 +166,7 @@ function resetPlayer() {
   currentTrackIndex = -1;
   fileName.textContent = '재생할 파일이 없습니다';
   status.textContent = '파일을 열거나 창에 드롭하세요';
+  playbackState.textContent = '대기';
   seek.value = 0;
   seek.max = 100;
   currentTime.textContent = '0:00';
@@ -202,15 +204,6 @@ openButton.addEventListener('click', async () => {
   addTracks(files);
 });
 
-document.querySelector('#playlistButton').addEventListener('click', () => {
-  const opening = !playlistPanel.classList.contains('open');
-  playlistPanel.classList.toggle('open', opening);
-  playlistPanel.setAttribute('aria-hidden', String(!opening));
-});
-document.querySelector('#closePlaylist').addEventListener('click', () => {
-  playlistPanel.classList.remove('open');
-  playlistPanel.setAttribute('aria-hidden', 'true');
-});
 document.querySelector('#previousTrack').addEventListener('click', () => playRelativeTrack(-1));
 document.querySelector('#nextTrack').addEventListener('click', () => playRelativeTrack(1));
 document.querySelector('#clearPlaylist').addEventListener('click', clearPlaylist);
@@ -313,6 +306,7 @@ audio.addEventListener('play', () => {
   toggleButton.innerHTML = pauseIcon;
   toggleButton.setAttribute('aria-label', '일시정지');
   status.textContent = '재생 중';
+  playbackState.textContent = '재생 중';
   renderPlaylist();
 });
 
@@ -320,7 +314,10 @@ audio.addEventListener('pause', () => {
   document.body.classList.remove('is-playing');
   toggleButton.innerHTML = playIcon;
   toggleButton.setAttribute('aria-label', '재생');
-  if (audio.src && !audio.ended) status.textContent = '일시정지';
+  if (audio.src && !audio.ended) {
+    status.textContent = '일시정지';
+    playbackState.textContent = '일시정지';
+  }
   renderPlaylist();
 });
 
@@ -331,6 +328,7 @@ audio.addEventListener('ended', () => {
     playRelativeTrack(1, false);
   } else {
     status.textContent = '재생목록 완료';
+    playbackState.textContent = '완료';
     renderPlaylist();
   }
 });
