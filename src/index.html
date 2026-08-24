@@ -30,14 +30,21 @@
 </main>
 <dialog id="shortcutDialog"><form id="shortcutForm" method="dialog">
   <div class="dialog-heading"><div><span class="section-label">KEYBOARD</span><h2>단축키</h2></div><button id="closeSettings" class="icon-button" type="button" aria-label="닫기">×</button></div>
-  <p class="dialog-help">입력 칸을 선택한 뒤 원하는 조합을 누르세요. 앱이 뒤에 있어도 작동하며, 다른 앱과 겹치는 조합은 저장되지 않습니다.</p>
-  <label>재생 / 일시정지 <input id="shortcutToggle" class="shortcut-input" readonly data-command="toggle"></label>
-  <label>뒤로 이동 <input id="shortcutBackward" class="shortcut-input" readonly data-command="backward"></label>
-  <label>앞으로 이동 <input id="shortcutForward" class="shortcut-input" readonly data-command="forward"></label>
-  <label>볼륨 올리기 <input id="shortcutVolumeUp" class="shortcut-input" readonly data-command="volumeUp"></label>
-  <label>볼륨 내리기 <input id="shortcutVolumeDown" class="shortcut-input" readonly data-command="volumeDown"></label>
+  <p class="dialog-help">로컬 단축키는 Skiplet이 앞에 있을 때, 글로벌 단축키는 다른 앱을 사용 중일 때도 작동합니다.</p>
+  <h3 class="shortcut-section">로컬 단축키</h3>
+  <label>재생 / 일시정지 <input id="shortcutToggle" class="shortcut-input local-shortcut" readonly data-command="toggle"></label>
+  <label>뒤로 이동 <input id="shortcutBackward" class="shortcut-input local-shortcut" readonly data-command="backward"></label>
+  <label>앞으로 이동 <input id="shortcutForward" class="shortcut-input local-shortcut" readonly data-command="forward"></label>
+  <label>볼륨 올리기 <input id="shortcutVolumeUp" class="shortcut-input local-shortcut" readonly data-command="volumeUp"></label>
+  <label>볼륨 내리기 <input id="shortcutVolumeDown" class="shortcut-input local-shortcut" readonly data-command="volumeDown"></label>
+  <h3 class="shortcut-section global-heading">글로벌 단축키</h3>
+  <label>재생 / 일시정지 <input class="shortcut-input global-shortcut" readonly data-command="toggle"></label>
+  <label>뒤로 이동 <input class="shortcut-input global-shortcut" readonly data-command="backward"></label>
+  <label>앞으로 이동 <input class="shortcut-input global-shortcut" readonly data-command="forward"></label>
+  <label>볼륨 올리기 <input class="shortcut-input global-shortcut" readonly data-command="volumeUp"></label>
+  <label>볼륨 내리기 <input class="shortcut-input global-shortcut" readonly data-command="volumeDown"></label>
   <p id="shortcutError" class="shortcut-error" role="alert"></p>
-  <div class="dialog-actions"><button id="resetShortcuts" class="text-button" type="button">기본값 복원</button><button id="saveShortcuts" class="save-button" type="submit">저장</button></div>
+  <div class="dialog-actions"><span><button id="resetShortcuts" class="text-button" type="button">로컬 초기화</button><button id="resetGlobalShortcuts" class="text-button reset-global" type="button">글로벌 초기화</button></span><button id="saveShortcuts" class="save-button" type="submit">모두 저장</button></div>
 </form></dialog>
 <audio id="audio"></audio><script src="renderer.js"></script>
 </body></html>

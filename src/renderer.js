@@ -19,7 +19,10 @@ const shortcutDialog = document.querySelector('#shortcutDialog');
 const shortcutForm = document.querySelector('#shortcutForm');
 const shortcutError = document.querySelector('#shortcutError');
 const shortcutInputs = [...document.querySelectorAll('.shortcut-input')];
+const localShortcutInputs = [...document.querySelectorAll('.local-shortcut')];
+const globalShortcutInputs = [...document.querySelectorAll('.global-shortcut')];
 let currentShortcuts = {};
+let currentGlobalShortcuts = {};
 let seekSeconds = 10;
 let playlist = [];
 let currentTrackIndex = -1;
@@ -62,13 +65,22 @@ function displayShortcut(accelerator) {
     .replaceAll('+', ' ');
 }
 
-function renderShortcuts(shortcuts) {
-  currentShortcuts = { ...shortcuts };
-  for (const input of shortcutInputs) {
+function renderShortcutGroup(shortcuts, inputs) {
+  for (const input of inputs) {
     input.dataset.accelerator = shortcuts[input.dataset.command];
     input.value = displayShortcut(shortcuts[input.dataset.command]);
   }
+}
+
+function renderShortcuts(shortcuts) {
+  currentShortcuts = { ...shortcuts };
+  renderShortcutGroup(shortcuts, localShortcutInputs);
   renderShortcutSummary();
+}
+
+function renderGlobalShortcuts(shortcuts) {
+  currentGlobalShortcuts = { ...shortcuts };
+  renderShortcutGroup(shortcuts, globalShortcutInputs);
 }
 
 function renderShortcutSummary() {
@@ -217,6 +229,7 @@ document.querySelector('#clearPlaylist').addEventListener('click', clearPlaylist
 document.querySelector('#settingsButton').addEventListener('click', () => {
   shortcutError.textContent = '';
   renderShortcuts(currentShortcuts);
+  renderGlobalShortcuts(currentGlobalShortcuts);
   shortcutDialog.showModal();
 });
 document.querySelector('#closeSettings').addEventListener('click', () => shortcutDialog.close());
@@ -238,13 +251,20 @@ for (const input of shortcutInputs) {
 
 shortcutForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-  const candidate = Object.fromEntries(shortcutInputs.map((input) => [input.dataset.command, input.dataset.accelerator]));
-  const result = await window.playerAPI.setShortcuts(candidate);
-  if (!result.ok) {
-    shortcutError.textContent = result.error;
+  const localCandidate = Object.fromEntries(localShortcutInputs.map((input) => [input.dataset.command, input.dataset.accelerator]));
+  const globalCandidate = Object.fromEntries(globalShortcutInputs.map((input) => [input.dataset.command, input.dataset.accelerator]));
+  const localResult = await window.playerAPI.setShortcuts(localCandidate);
+  if (!localResult.ok) {
+    shortcutError.textContent = localResult.error;
     return;
   }
-  renderShortcuts(result.shortcuts);
+  const globalResult = await window.playerAPI.setGlobalShortcuts(globalCandidate);
+  if (!globalResult.ok) {
+    shortcutError.textContent = globalResult.error;
+    return;
+  }
+  renderShortcuts(localResult.shortcuts);
+  renderGlobalShortcuts(globalResult.shortcuts);
   shortcutDialog.close();
 });
 
@@ -258,10 +278,26 @@ function runShortcut(command) {
 
 window.playerAPI.onGlobalShortcut(runShortcut);
 
+document.addEventListener('keydown', (event) => {
+  if (shortcutDialog.open || event.target.matches('input, button')) return;
+  const accelerator = acceleratorFromEvent(event);
+  if (!accelerator) return;
+  const command = Object.keys(currentShortcuts).find((name) => currentShortcuts[name] === accelerator);
+  if (!command) return;
+  event.preventDefault();
+  runShortcut(command);
+});
+
 document.querySelector('#resetShortcuts').addEventListener('click', async () => {
   const result = await window.playerAPI.resetShortcuts();
   if (!result.ok) shortcutError.textContent = result.error;
   else renderShortcuts(result.shortcuts);
+});
+
+document.querySelector('#resetGlobalShortcuts').addEventListener('click', async () => {
+  const result = await window.playerAPI.resetGlobalShortcuts();
+  if (!result.ok) shortcutError.textContent = result.error;
+  else renderGlobalShortcuts(result.shortcuts);
 });
 
 document.querySelector('#toggle').addEventListener('click', togglePlayback);
@@ -384,6 +420,7 @@ document.addEventListener('drop', (event) => {
 });
 
 window.playerAPI.getShortcuts().then(renderShortcuts);
+window.playerAPI.getGlobalShortcuts().then(renderGlobalShortcuts);
 window.playerAPI.getSeekSeconds().then(applySeekSeconds);
 window.playerAPI.getVolume().then(applyVolume);
 renderPlaylist();

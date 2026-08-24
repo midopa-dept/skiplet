@@ -5,9 +5,17 @@ const fs = require('node:fs');
 
 let mainWindow;
 let shortcuts;
+let globalShortcuts;
 let seekSeconds;
 let volume;
 const defaultShortcuts = {
+  toggle: 'Space',
+  backward: 'Left',
+  forward: 'Right',
+  volumeUp: 'Up',
+  volumeDown: 'Down'
+};
+const defaultGlobalShortcuts = {
   toggle: 'CommandOrControl+Option+Space',
   backward: 'CommandOrControl+Option+Left',
   forward: 'CommandOrControl+Option+Right',
@@ -22,19 +30,22 @@ function settingsPath() {
 function loadSettings() {
   try {
     const saved = JSON.parse(fs.readFileSync(settingsPath(), 'utf8'));
-    if (saved.settingsVersion !== 4) throw new Error('Old settings format');
+    if (![4, 5].includes(saved.settingsVersion)) throw new Error('Old settings format');
     return {
-      shortcuts: { ...defaultShortcuts, ...saved.shortcuts },
+      shortcuts: saved.settingsVersion === 5 ? { ...defaultShortcuts, ...saved.shortcuts } : { ...defaultShortcuts },
+      globalShortcuts: saved.settingsVersion === 5
+        ? { ...defaultGlobalShortcuts, ...saved.globalShortcuts }
+        : { ...defaultGlobalShortcuts, ...saved.shortcuts },
       seekSeconds: Number.isFinite(saved.seekSeconds) ? saved.seekSeconds : 10,
       volume: Number.isFinite(saved.volume) ? saved.volume : 1
     };
   } catch {
-    return { shortcuts: { ...defaultShortcuts }, seekSeconds: 10, volume: 1 };
+    return { shortcuts: { ...defaultShortcuts }, globalShortcuts: { ...defaultGlobalShortcuts }, seekSeconds: 10, volume: 1 };
   }
 }
 
 function saveSettings() {
-  fs.writeFileSync(settingsPath(), JSON.stringify({ settingsVersion: 4, shortcuts, seekSeconds, volume }, null, 2));
+  fs.writeFileSync(settingsPath(), JSON.stringify({ settingsVersion: 5, shortcuts, globalShortcuts, seekSeconds, volume }, null, 2));
 }
 
 function registerShortcuts(candidate) {
@@ -83,6 +94,7 @@ app.whenReady().then(() => {
   }
   const settings = loadSettings();
   shortcuts = settings.shortcuts;
+  globalShortcuts = settings.globalShortcuts;
   seekSeconds = settings.seekSeconds;
   volume = settings.volume;
 
@@ -102,6 +114,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.handle('get-shortcuts', () => ({ ...shortcuts }));
+  ipcMain.handle('get-global-shortcuts', () => ({ ...globalShortcuts }));
   ipcMain.handle('get-seek-seconds', () => seekSeconds);
   ipcMain.handle('get-volume', () => volume);
   ipcMain.handle('set-volume', (_event, value) => {
@@ -128,16 +141,6 @@ app.whenReady().then(() => {
     if (new Set(commands.map((command) => candidate[command])).size !== commands.length) {
       return { ok: false, error: '각 기능에 서로 다른 단축키를 지정하세요.' };
     }
-    if (commands.some((command) => !/(Command|Control|Option|Alt|Shift)/.test(candidate[command]))) {
-      return { ok: false, error: '글로벌 단축키에는 Command, Control, Option 또는 Shift가 포함되어야 합니다.' };
-    }
-
-    const previous = { ...shortcuts };
-    const registration = registerShortcuts(candidate);
-    if (!registration.ok) {
-      registerShortcuts(previous);
-      return { ok: false, error: `${registration.accelerator} 조합은 macOS 또는 다른 앱에서 사용 중입니다.` };
-    }
     shortcuts = { ...candidate };
     try {
       saveSettings();
@@ -147,23 +150,45 @@ app.whenReady().then(() => {
     }
   });
 
-  ipcMain.handle('reset-shortcuts', () => {
-    const previous = { ...shortcuts };
-    const registration = registerShortcuts(defaultShortcuts);
+  ipcMain.handle('set-global-shortcuts', (_event, candidate) => {
+    const commands = Object.keys(defaultGlobalShortcuts);
+    if (!candidate || commands.some((command) => typeof candidate[command] !== 'string')) return { ok: false, error: '올바르지 않은 글로벌 단축키 설정입니다.' };
+    if (new Set(commands.map((command) => candidate[command])).size !== commands.length) return { ok: false, error: '각 기능에 서로 다른 글로벌 단축키를 지정하세요.' };
+    if (commands.some((command) => !/(Command|Control|Option|Alt|Shift)/.test(candidate[command]))) return { ok: false, error: '글로벌 단축키에는 보조키가 포함되어야 합니다.' };
+    const previous = { ...globalShortcuts };
+    const registration = registerShortcuts(candidate);
     if (!registration.ok) {
       registerShortcuts(previous);
-      return { ok: false, error: '기본 글로벌 단축키를 등록할 수 없습니다.' };
+      return { ok: false, error: `${registration.accelerator} 조합은 macOS 또는 다른 앱에서 사용 중입니다.` };
     }
+    globalShortcuts = { ...candidate };
+    saveSettings();
+    return { ok: true, shortcuts: { ...globalShortcuts } };
+  });
+
+  ipcMain.handle('reset-shortcuts', () => {
     shortcuts = { ...defaultShortcuts };
     saveSettings();
     return { ok: true, shortcuts: { ...shortcuts } };
   });
 
+  ipcMain.handle('reset-global-shortcuts', () => {
+    const previous = { ...globalShortcuts };
+    const registration = registerShortcuts(defaultGlobalShortcuts);
+    if (!registration.ok) {
+      registerShortcuts(previous);
+      return { ok: false, error: '기본 글로벌 단축키를 등록할 수 없습니다.' };
+    }
+    globalShortcuts = { ...defaultGlobalShortcuts };
+    saveSettings();
+    return { ok: true, shortcuts: { ...globalShortcuts } };
+  });
+
   createWindow();
-  const initialRegistration = registerShortcuts(shortcuts);
+  const initialRegistration = registerShortcuts(globalShortcuts);
   if (!initialRegistration.ok) {
-    shortcuts = { ...defaultShortcuts };
-    registerShortcuts(shortcuts);
+    globalShortcuts = { ...defaultGlobalShortcuts };
+    registerShortcuts(globalShortcuts);
     saveSettings();
   }
 
