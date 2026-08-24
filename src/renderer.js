@@ -24,6 +24,7 @@ let seekSeconds = 10;
 let playlist = [];
 let currentTrackIndex = -1;
 let nextTrackId = 1;
+const recentlyAddedIds = new Set();
 const playIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="m9 6 9 6-9 6V6Z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="M7.5 6h3v12h-3zM13.5 6h3v12h-3z"/></svg>';
 
@@ -92,7 +93,7 @@ function renderPlaylist() {
 
   playlist.forEach((track, index) => {
     const item = document.createElement('li');
-    item.className = `playlist-item${index === currentTrackIndex ? ' current' : ''}`;
+    item.className = `playlist-item${index === currentTrackIndex ? ' current' : ''}${recentlyAddedIds.has(track.id) ? ' added' : ''}`;
 
     const number = document.createElement('span');
     number.className = 'playlist-index';
@@ -120,10 +121,15 @@ function renderPlaylist() {
 function addTracks(tracks) {
   if (tracks.length === 0) return;
   const firstNewIndex = playlist.length;
-  playlist.push(...tracks.map((track) => ({ id: nextTrackId++, ...track })));
+  const additions = tracks.map((track) => ({ id: nextTrackId++, ...track }));
+  for (const track of additions) recentlyAddedIds.add(track.id);
+  playlist.push(...additions);
   renderPlaylist();
   if (currentTrackIndex === -1) playTrack(firstNewIndex);
-  else status.textContent = `${tracks.length}곡을 재생목록에 추가했습니다`;
+  window.setTimeout(() => {
+    for (const track of additions) recentlyAddedIds.delete(track.id);
+    renderPlaylist();
+  }, 1300);
 }
 
 function playTrack(index, autoplay = true) {
@@ -242,19 +248,15 @@ shortcutForm.addEventListener('submit', async (event) => {
   shortcutDialog.close();
 });
 
-document.addEventListener('keydown', (event) => {
-  if (shortcutDialog.open || event.target.matches('input, button')) return;
-  const accelerator = acceleratorFromEvent(event);
-  if (!accelerator) return;
-  const command = Object.keys(currentShortcuts).find((name) => currentShortcuts[name] === accelerator);
-  if (!command) return;
-  event.preventDefault();
+function runShortcut(command) {
   if (command === 'toggle') togglePlayback();
   if (command === 'backward') move(-seekSeconds);
   if (command === 'forward') move(seekSeconds);
   if (command === 'volumeUp') changeVolume(0.05);
   if (command === 'volumeDown') changeVolume(-0.05);
-});
+}
+
+window.playerAPI.onGlobalShortcut(runShortcut);
 
 document.querySelector('#resetShortcuts').addEventListener('click', async () => {
   const result = await window.playerAPI.resetShortcuts();

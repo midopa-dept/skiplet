@@ -8,5 +8,6 @@ contextBridge.exposeInMainWorld('playerAPI', {
   getSeekSeconds: () => ipcRenderer.invoke('get-seek-seconds'),
   setSeekSeconds: (seconds) => ipcRenderer.invoke('set-seek-seconds', seconds),
   getVolume: () => ipcRenderer.invoke('get-volume'),
-  setVolume: (volume) => ipcRenderer.invoke('set-volume', volume)
+  setVolume: (volume) => ipcRenderer.invoke('set-volume', volume),
+  onGlobalShortcut: (callback) => ipcRenderer.on('global-shortcut', (_event, command) => callback(command))
 });

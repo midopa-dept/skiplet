@@ -47,3 +47,39 @@ body.is-playing .equalizer i:nth-child(2) { animation-delay: -.35s; }
 body.is-playing .equalizer i:nth-child(3) { animation-delay: -.15s; }
 body.is-playing .player { border-color: #c9ef6338; box-shadow: inset 3px 0 #c9ef63; }
 @keyframes equalize { from { height: 3px; } to { height: 12px; } }
+
+/* Higher-contrast graphite, lime and cool-cyan palette. */
+body { color: #f4f7ef; background: #111310; }
+.player, .playlist-panel { border-color: #343a32; background: #191c18; }
+.brand { gap: 9px; }
+.brand-monogram { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #536047; border-radius: 8px; color: #111310; background: #b9e85b; box-shadow: 0 6px 18px #b9e85b18; font-size: 13px; font-weight: 850; }
+.brand-copy { display: flex; flex-direction: column; gap: 2px; }
+.brand-copy strong { color: #f5f8f1; font-size: 12px; font-weight: 760; letter-spacing: .12em; }
+.brand-copy small { color: #9fa89b; font-size: 7px; font-weight: 650; letter-spacing: .14em; }
+.icon-button { color: #b4bbb0; }
+.icon-button:hover { color: #ffffff; background: #ffffff12; }
+.open-button { color: #111310; background: #dce6d5; }
+.open-button:hover { background: #f2faed; }
+h1 { color: #f7f9f4; }
+.state-line, .times, .seek-step, .volume-row { color: #aeb5aa; }
+.state-line strong { color: #c2c9bd; background: #30362e; }
+.section-label { color: #9fa89b; }
+.playlist-heading h2 { color: #f0f3ec; }
+.playlist-heading h2 span { color: #aab2a5; }
+.playlist-actions button { color: #bac1b6; background: #2a2f28; }
+.playlist-actions .clear-playlist { color: #aeb5aa; }
+.playlist-item { border-bottom-color: #343a32; color: #c2c9bf; }
+.playlist-index, .playlist-remove { color: #929b8e; }
+.playlist-item.current { color: #ffffff; background: #b9e85b12; box-shadow: inset 3px 0 #b9e85b; }
+.playlist-item.added { animation: queue-added 1.3s ease-out; }
+.playlist-item.added:not(.current) { box-shadow: inset 3px 0 #70c7d4; background: #70c7d414; }
+.empty-playlist { color: #a1aa9d; }
+footer { color: #949d90; }
+kbd { border-color: #485046; color: #d7ddd3; background: #252a23; }
+input[type=range] { accent-color: #b9e85b; }
+.toggle { background: #b9e85b !important; }
+.toggle:hover { background: #ccf878 !important; }
+body.is-playing .state-line strong { color: #111310; background: #b9e85b; }
+body.is-playing .equalizer i { background: #b9e85b; }
+body.is-playing .player { border-color: #6f8c3d; box-shadow: inset 3px 0 #b9e85b; }
+@keyframes queue-added { 0% { outline: 1px solid #70c7d4; } 100% { outline-color: transparent; } }

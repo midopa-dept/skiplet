@@ -4,10 +4,9 @@
 <body>
 <main class="shell">
   <header class="toolbar">
-    <div class="brand">Skiplet</div>
+    <div class="brand"><span class="brand-monogram">S</span><span class="brand-copy"><strong>SKIPLET</strong><small>QUICK AUDIO PLAYER</small></span></div>
     <div class="header-actions">
       <button id="settingsButton" class="icon-button" type="button" aria-label="단축키 설정" title="단축키 설정"><svg viewBox="0 0 24 24"><path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z"/><path d="M19.4 13.5a7.7 7.7 0 0 0 0-3l1.7-1.3-2-3.4-2 .8a8 8 0 0 0-2.6-1.5L14.2 3h-4.4l-.3 2.1a8 8 0 0 0-2.6 1.5l-2-.8-2 3.4 1.7 1.3a7.7 7.7 0 0 0 0 3l-1.7 1.3 2 3.4 2-.8a8 8 0 0 0 2.6 1.5l.3 2.1h4.4l.3-2.1a8 8 0 0 0 2.6-1.5l2 .8 2-3.4-1.7-1.3Z"/></svg></button>
-      <button id="openButton" class="open-button" type="button"><svg viewBox="0 0 24 24"><path d="M4 7.5h6l1.7 2H20v8.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7.5Z"/><path d="M4 10h16"/></svg>파일 열기</button>
     </div>
   </header>
   <section id="dropZone" class="player" aria-label="오디오 플레이어">
@@ -22,7 +21,7 @@
     <div class="volume-row"><svg viewBox="0 0 24 24"><path d="M5 10v4h3l4 3V7l-4 3H5Z"/><path d="M15 9.5a4 4 0 0 1 0 5"/><path d="M17.5 7a7.5 7.5 0 0 1 0 10"/></svg><input id="volume" type="range" min="0" max="1" step="0.05" value="1" aria-label="볼륨"><span id="volumeValue">100</span></div>
   </section>
   <section id="playlistPanel" class="playlist-panel" aria-label="재생목록">
-    <div class="playlist-heading"><div><span class="section-label">QUEUE</span><h2>재생목록 <span id="playlistCount">0</span></h2></div></div>
+    <div class="playlist-heading"><div><span class="section-label">QUEUE</span><h2>재생목록 <span id="playlistCount">0</span></h2></div><button id="openButton" class="open-button" type="button"><svg viewBox="0 0 24 24"><path d="M4 7.5h6l1.7 2H20v8.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7.5Z"/><path d="M4 10h16"/></svg>파일 추가</button></div>
     <div class="playlist-actions"><button id="previousTrack" type="button" aria-label="이전 곡"><svg viewBox="0 0 24 24"><path class="fill" d="M6 6h2v12H6zM18 6v12l-8-6 8-6Z"/></svg></button><button id="nextTrack" type="button" aria-label="다음 곡"><svg viewBox="0 0 24 24"><path class="fill" d="M16 6h2v12h-2zM6 6v12l8-6-8-6Z"/></svg></button><button id="clearPlaylist" class="clear-playlist" type="button">전체 비우기</button></div>
     <ol id="playlist" class="playlist"></ol>
     <p id="emptyPlaylist" class="empty-playlist">파일을 여러 개 선택하거나 이 창에 드롭하세요.</p>
@@ -31,7 +30,7 @@
 </main>
 <dialog id="shortcutDialog"><form id="shortcutForm" method="dialog">
   <div class="dialog-heading"><div><span class="section-label">KEYBOARD</span><h2>단축키</h2></div><button id="closeSettings" class="icon-button" type="button" aria-label="닫기">×</button></div>
-  <p class="dialog-help">입력 칸을 선택한 뒤 원하는 키를 누르세요. 앱이 앞에 있을 때만 작동합니다.</p>
+  <p class="dialog-help">입력 칸을 선택한 뒤 원하는 조합을 누르세요. 앱이 뒤에 있어도 작동하며, 다른 앱과 겹치는 조합은 저장되지 않습니다.</p>
   <label>재생 / 일시정지 <input id="shortcutToggle" class="shortcut-input" readonly data-command="toggle"></label>
   <label>뒤로 이동 <input id="shortcutBackward" class="shortcut-input" readonly data-command="backward"></label>
   <label>앞으로 이동 <input id="shortcutForward" class="shortcut-input" readonly data-command="forward"></label>
