@@ -1,0 +1,23 @@
+.playlist-toggle { position: relative; }
+.playlist-toggle span { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; color: #171817; background: #c9ef63; font-size: 9px; font-weight: 750; line-height: 16px; text-align: center; }
+.playlist-panel { position: absolute; z-index: 10; inset: 54px 14px 14px; display: flex; flex-direction: column; padding: 20px; border: 1px solid #ffffff12; border-radius: 15px; background: #202220f7; box-shadow: 0 22px 60px #0009; opacity: 0; transform: translateY(8px) scale(.985); pointer-events: none; transition: opacity .15s, transform .15s; backdrop-filter: blur(16px); }
+.playlist-panel.open { opacity: 1; transform: none; pointer-events: auto; }
+.playlist-heading { display: flex; align-items: flex-start; justify-content: space-between; }
+.playlist-heading h2 { margin: 5px 0 0; font-size: 20px; font-weight: 620; }
+.playlist-heading .icon-button { font-size: 22px; line-height: 1; }
+.playlist-actions { display: flex; align-items: center; gap: 5px; margin: 16px 0 12px; }
+.playlist-actions button { height: 30px; display: grid; place-items: center; border-radius: 8px; color: #a4a7a1; background: #ffffff08; }
+.playlist-actions button:not(.clear-playlist) { width: 34px; }
+.playlist-actions button:hover { color: #f2f2ef; background: #ffffff10; }
+.playlist-actions svg { width: 16px; height: 16px; }
+.playlist-actions .clear-playlist { margin-left: auto; padding: 0 10px; color: #858983; font-size: 10px; }
+.playlist { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.playlist-item { display: grid; grid-template-columns: 22px minmax(0,1fr) 28px; align-items: center; gap: 8px; min-height: 42px; border-bottom: 1px solid #ffffff08; color: #9a9d97; }
+.playlist-item.current { color: #eef0e9; }
+.playlist-index { color: #656963; font-size: 10px; font-variant-numeric: tabular-nums; text-align: center; }
+.playlist-item.current .playlist-index { color: #c9ef63; }
+.playlist-track { min-width: 0; padding: 8px 0; overflow: hidden; color: inherit; background: transparent; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.playlist-remove { width: 26px; height: 26px; border-radius: 7px; color: #656963; background: transparent; font-size: 17px; line-height: 1; }
+.playlist-remove:hover { color: #ef8e86; background: #ffffff08; }
+.empty-playlist { margin: auto; max-width: 240px; color: #747872; font-size: 12px; line-height: 1.6; text-align: center; }
+.playlist:not(:empty) + .empty-playlist { display: none; }

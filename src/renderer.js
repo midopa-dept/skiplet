@@ -12,13 +12,18 @@ const forwardButton = document.querySelector('#forward');
 const seekSecondsInput = document.querySelector('#seekSeconds');
 const volumeInput = document.querySelector('#volume');
 const volumeValue = document.querySelector('#volumeValue');
+const playlistPanel = document.querySelector('#playlistPanel');
+const playlistElement = document.querySelector('#playlist');
+const playlistCount = document.querySelector('#playlistCount');
 const shortcutDialog = document.querySelector('#shortcutDialog');
 const shortcutForm = document.querySelector('#shortcutForm');
 const shortcutError = document.querySelector('#shortcutError');
 const shortcutInputs = [...document.querySelectorAll('.shortcut-input')];
 let currentShortcuts = {};
 let seekSeconds = 10;
-let droppedAudioUrl = null;
+let playlist = [];
+let currentTrackIndex = -1;
+let nextTrackId = 1;
 const playIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="m9 6 9 6-9 6V6Z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="M7.5 6h3v12h-3zM13.5 6h3v12h-3z"/></svg>';
 
@@ -81,17 +86,103 @@ function formatTime(seconds) {
   return `${minutes}:${remainder}`;
 }
 
-function loadAudio(file) {
-  if (droppedAudioUrl && droppedAudioUrl !== file.url) {
-    URL.revokeObjectURL(droppedAudioUrl);
-    droppedAudioUrl = null;
-  }
-  audio.src = file.url;
-  fileName.textContent = file.name;
+function renderPlaylist() {
+  playlistElement.replaceChildren();
+  playlistCount.textContent = playlist.length > 99 ? '99+' : playlist.length;
+
+  playlist.forEach((track, index) => {
+    const item = document.createElement('li');
+    item.className = `playlist-item${index === currentTrackIndex ? ' current' : ''}`;
+
+    const number = document.createElement('span');
+    number.className = 'playlist-index';
+    number.textContent = index === currentTrackIndex && !audio.paused ? '▶' : String(index + 1);
+
+    const select = document.createElement('button');
+    select.className = 'playlist-track';
+    select.type = 'button';
+    select.textContent = track.name;
+    select.title = track.name;
+    select.addEventListener('click', () => playTrack(index));
+
+    const remove = document.createElement('button');
+    remove.className = 'playlist-remove';
+    remove.type = 'button';
+    remove.setAttribute('aria-label', `${track.name} 삭제`);
+    remove.textContent = '×';
+    remove.addEventListener('click', () => removeTrack(index));
+
+    item.append(number, select, remove);
+    playlistElement.append(item);
+  });
+}
+
+function addTracks(tracks) {
+  if (tracks.length === 0) return;
+  const firstNewIndex = playlist.length;
+  playlist.push(...tracks.map((track) => ({ id: nextTrackId++, ...track })));
+  renderPlaylist();
+  if (currentTrackIndex === -1) playTrack(firstNewIndex);
+  else status.textContent = `${tracks.length}곡을 재생목록에 추가했습니다`;
+}
+
+function playTrack(index, autoplay = true) {
+  const track = playlist[index];
+  if (!track) return;
+  currentTrackIndex = index;
+  audio.src = track.url;
+  fileName.textContent = track.name;
   status.textContent = '재생 준비됨';
+  seek.value = 0;
+  currentTime.textContent = '0:00';
+  renderPlaylist();
+  if (!autoplay) return;
   audio.play().catch(() => {
     status.textContent = '재생 버튼을 눌러 시작하세요';
   });
+}
+
+function removeTrack(index) {
+  const wasCurrent = index === currentTrackIndex;
+  const wasPlaying = !audio.paused;
+  const [removed] = playlist.splice(index, 1);
+  if (removed?.objectUrl) URL.revokeObjectURL(removed.objectUrl);
+
+  if (playlist.length === 0) {
+    resetPlayer();
+  } else if (wasCurrent) {
+    playTrack(Math.min(index, playlist.length - 1), wasPlaying);
+  } else {
+    if (index < currentTrackIndex) currentTrackIndex -= 1;
+    renderPlaylist();
+  }
+}
+
+function resetPlayer() {
+  audio.pause();
+  audio.removeAttribute('src');
+  audio.load();
+  currentTrackIndex = -1;
+  fileName.textContent = '재생할 파일이 없습니다';
+  status.textContent = '파일을 열거나 창에 드롭하세요';
+  seek.value = 0;
+  seek.max = 100;
+  currentTime.textContent = '0:00';
+  duration.textContent = '0:00';
+  renderPlaylist();
+}
+
+function clearPlaylist() {
+  for (const track of playlist) if (track.objectUrl) URL.revokeObjectURL(track.objectUrl);
+  playlist = [];
+  resetPlayer();
+}
+
+function playRelativeTrack(offset, wrap = true) {
+  if (playlist.length === 0) return;
+  let nextIndex = currentTrackIndex + offset;
+  if (wrap) nextIndex = (nextIndex + playlist.length) % playlist.length;
+  if (nextIndex >= 0 && nextIndex < playlist.length) playTrack(nextIndex);
 }
 
 function togglePlayback() {
@@ -107,9 +198,22 @@ function move(seconds) {
 }
 
 openButton.addEventListener('click', async () => {
-  const file = await window.playerAPI.chooseAudio();
-  if (file) loadAudio(file);
+  const files = await window.playerAPI.chooseAudio();
+  addTracks(files);
 });
+
+document.querySelector('#playlistButton').addEventListener('click', () => {
+  const opening = !playlistPanel.classList.contains('open');
+  playlistPanel.classList.toggle('open', opening);
+  playlistPanel.setAttribute('aria-hidden', String(!opening));
+});
+document.querySelector('#closePlaylist').addEventListener('click', () => {
+  playlistPanel.classList.remove('open');
+  playlistPanel.setAttribute('aria-hidden', 'true');
+});
+document.querySelector('#previousTrack').addEventListener('click', () => playRelativeTrack(-1));
+document.querySelector('#nextTrack').addEventListener('click', () => playRelativeTrack(1));
+document.querySelector('#clearPlaylist').addEventListener('click', clearPlaylist);
 
 document.querySelector('#settingsButton').addEventListener('click', () => {
   shortcutError.textContent = '';
@@ -209,6 +313,7 @@ audio.addEventListener('play', () => {
   toggleButton.innerHTML = pauseIcon;
   toggleButton.setAttribute('aria-label', '일시정지');
   status.textContent = '재생 중';
+  renderPlaylist();
 });
 
 audio.addEventListener('pause', () => {
@@ -216,12 +321,18 @@ audio.addEventListener('pause', () => {
   toggleButton.innerHTML = playIcon;
   toggleButton.setAttribute('aria-label', '재생');
   if (audio.src && !audio.ended) status.textContent = '일시정지';
+  renderPlaylist();
 });
 
 audio.addEventListener('ended', () => {
   document.body.classList.remove('is-playing');
-  status.textContent = '재생 완료';
   toggleButton.innerHTML = playIcon;
+  if (currentTrackIndex < playlist.length - 1) {
+    playRelativeTrack(1, false);
+  } else {
+    status.textContent = '재생목록 완료';
+    renderPlaylist();
+  }
 });
 
 audio.addEventListener('loadedmetadata', () => {
@@ -254,18 +365,19 @@ for (const eventName of ['dragleave', 'drop']) {
 
 document.addEventListener('drop', (event) => {
   const supportedExtensions = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'];
-  const file = [...event.dataTransfer.files].find((item) => {
+  const files = [...event.dataTransfer.files].filter((item) => {
     const extension = item.name.split('.').pop()?.toLowerCase();
     return item.type.startsWith('audio/') || supportedExtensions.includes(extension);
   });
-  if (!file) {
+  if (files.length === 0) {
     status.textContent = '지원되는 오디오 파일이 아닙니다';
     return;
   }
   try {
-    if (droppedAudioUrl) URL.revokeObjectURL(droppedAudioUrl);
-    droppedAudioUrl = URL.createObjectURL(file);
-    loadAudio({ name: file.name, url: droppedAudioUrl });
+    addTracks(files.map((file) => {
+      const objectUrl = URL.createObjectURL(file);
+      return { name: file.name, url: objectUrl, objectUrl };
+    }));
   } catch (error) {
     status.textContent = `파일을 열지 못했습니다: ${error.message}`;
   }
@@ -274,3 +386,4 @@ document.addEventListener('drop', (event) => {
 window.playerAPI.getShortcuts().then(renderShortcuts);
 window.playerAPI.getSeekSeconds().then(applySeekSeconds);
 window.playerAPI.getVolume().then(applyVolume);
+renderPlaylist();

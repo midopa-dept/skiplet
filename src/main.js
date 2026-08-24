@@ -70,15 +70,17 @@ app.whenReady().then(() => {
 
   ipcMain.handle('choose-audio', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openFile'],
+      properties: ['openFile', 'multiSelections'],
       filters: [
         { name: 'Audio', extensions: ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'] }
       ]
     });
 
-    if (result.canceled || result.filePaths.length === 0) return null;
-    const filePath = result.filePaths[0];
-    return { name: path.basename(filePath), url: pathToFileURL(filePath).href };
+    if (result.canceled || result.filePaths.length === 0) return [];
+    return result.filePaths.map((filePath) => ({
+      name: path.basename(filePath),
+      url: pathToFileURL(filePath).href
+    }));
   });
 
   ipcMain.handle('get-shortcuts', () => ({ ...shortcuts }));

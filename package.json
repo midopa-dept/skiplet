@@ -1,7 +1,7 @@
 {
   "name": "skiplet",
   "productName": "Skiplet",
-  "version": "1.0.0",
+  "version": "1.1.0-beta.0",
   "description": "A compact, keyboard-friendly audio player for macOS",
   "license": "MIT",
   "main": "src/main.js",
