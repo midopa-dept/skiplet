@@ -8,6 +8,7 @@ let shortcuts;
 let globalShortcuts;
 let seekSeconds;
 let volume;
+let alwaysOnTop;
 const defaultShortcuts = {
   toggle: 'Space',
   backward: 'Left',
@@ -30,22 +31,23 @@ function settingsPath() {
 function loadSettings() {
   try {
     const saved = JSON.parse(fs.readFileSync(settingsPath(), 'utf8'));
-    if (![4, 5].includes(saved.settingsVersion)) throw new Error('Old settings format');
+    if (![4, 5, 6].includes(saved.settingsVersion)) throw new Error('Old settings format');
     return {
       shortcuts: saved.settingsVersion === 5 ? { ...defaultShortcuts, ...saved.shortcuts } : { ...defaultShortcuts },
       globalShortcuts: saved.settingsVersion === 5
         ? { ...defaultGlobalShortcuts, ...saved.globalShortcuts }
         : { ...defaultGlobalShortcuts, ...saved.shortcuts },
       seekSeconds: Number.isFinite(saved.seekSeconds) ? saved.seekSeconds : 10,
-      volume: Number.isFinite(saved.volume) ? saved.volume : 1
+      volume: Number.isFinite(saved.volume) ? saved.volume : 1,
+      alwaysOnTop: saved.settingsVersion === 6 && saved.alwaysOnTop === true
     };
   } catch {
-    return { shortcuts: { ...defaultShortcuts }, globalShortcuts: { ...defaultGlobalShortcuts }, seekSeconds: 10, volume: 1 };
+    return { shortcuts: { ...defaultShortcuts }, globalShortcuts: { ...defaultGlobalShortcuts }, seekSeconds: 10, volume: 1, alwaysOnTop: false };
   }
 }
 
 function saveSettings() {
-  fs.writeFileSync(settingsPath(), JSON.stringify({ settingsVersion: 5, shortcuts, globalShortcuts, seekSeconds, volume }, null, 2));
+  fs.writeFileSync(settingsPath(), JSON.stringify({ settingsVersion: 6, shortcuts, globalShortcuts, seekSeconds, volume, alwaysOnTop }, null, 2));
 }
 
 function registerShortcuts(candidate) {
@@ -73,6 +75,7 @@ function createWindow() {
     minHeight: 620,
     center: true,
     title: 'Skiplet',
+    alwaysOnTop,
     backgroundColor: '#111310',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 18, y: 18 },
@@ -97,6 +100,7 @@ app.whenReady().then(() => {
   globalShortcuts = settings.globalShortcuts;
   seekSeconds = settings.seekSeconds;
   volume = settings.volume;
+  alwaysOnTop = settings.alwaysOnTop;
 
   ipcMain.handle('choose-audio', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
@@ -117,6 +121,13 @@ app.whenReady().then(() => {
   ipcMain.handle('get-global-shortcuts', () => ({ ...globalShortcuts }));
   ipcMain.handle('get-seek-seconds', () => seekSeconds);
   ipcMain.handle('get-volume', () => volume);
+  ipcMain.handle('get-always-on-top', () => alwaysOnTop);
+  ipcMain.handle('set-always-on-top', (_event, value) => {
+    alwaysOnTop = value === true;
+    mainWindow.setAlwaysOnTop(alwaysOnTop);
+    saveSettings();
+    return { ok: true, alwaysOnTop };
+  });
   ipcMain.handle('set-volume', (_event, value) => {
     const nextValue = Number(value);
     if (!Number.isFinite(nextValue) || nextValue < 0 || nextValue > 1) return { ok: false };

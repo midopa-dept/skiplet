@@ -99,3 +99,13 @@ dialog { max-height: calc(100vh - 32px); overflow-y: auto; }
 .controls .skip-button svg { width: 21px; height: 21px; overflow: visible; }
 dialog { max-height: calc(100vh - 92px); }
 dialog[open] { transform: translateY(22px); }
+
+.pin-button.active { color: #111310; background: #b9e85b; }
+.pin-button.active:hover { color: #111310; background: #ccf878; }
+.queue-time { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 11px 0 3px; }
+.queue-time span { padding: 7px 8px; border: 1px solid #343a32; border-radius: 7px; color: #929b8e; background: #151714; font-size: 9px; }
+.queue-time strong { display: block; margin-top: 3px; overflow: hidden; color: #dce2d8; font-size: 11px; font-weight: 650; font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+.playlist-item { cursor: grab; }
+.playlist-item:active { cursor: grabbing; }
+.playlist-item.drag-source { opacity: .35; }
+.playlist-item.drag-target { outline: 1px solid #70c7d4; outline-offset: -1px; background: #70c7d414; }

@@ -14,6 +14,10 @@ const volumeInput = document.querySelector('#volume');
 const volumeValue = document.querySelector('#volumeValue');
 const playlistElement = document.querySelector('#playlist');
 const playlistCount = document.querySelector('#playlistCount');
+const queueElapsed = document.querySelector('#queueElapsed');
+const queueRemaining = document.querySelector('#queueRemaining');
+const queueTotal = document.querySelector('#queueTotal');
+const pinButton = document.querySelector('#pinButton');
 const playbackState = document.querySelector('#playbackState');
 const shortcutDialog = document.querySelector('#shortcutDialog');
 const shortcutForm = document.querySelector('#shortcutForm');
@@ -27,6 +31,7 @@ let seekSeconds = 10;
 let playlist = [];
 let currentTrackIndex = -1;
 let nextTrackId = 1;
+let draggedTrackId = null;
 const recentlyAddedIds = new Set();
 const playIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="m9 6 9 6-9 6V6Z"/></svg>';
 const pauseIcon = '<svg viewBox="0 0 24 24"><path class="fill" d="M7.5 6h3v12h-3zM13.5 6h3v12h-3z"/></svg>';
@@ -106,10 +111,13 @@ function renderPlaylist() {
   playlist.forEach((track, index) => {
     const item = document.createElement('li');
     item.className = `playlist-item${index === currentTrackIndex ? ' current' : ''}${recentlyAddedIds.has(track.id) ? ' added' : ''}`;
+    item.draggable = true;
+    item.dataset.trackId = track.id;
 
     const number = document.createElement('span');
     number.className = 'playlist-index';
     number.textContent = index === currentTrackIndex && !audio.paused ? '▶' : String(index + 1);
+    number.title = '드래그해 순서 변경';
 
     const select = document.createElement('button');
     select.className = 'playlist-track';
@@ -126,16 +134,92 @@ function renderPlaylist() {
     remove.addEventListener('click', () => removeTrack(index));
 
     item.append(number, select, remove);
+    item.addEventListener('dragstart', (event) => {
+      draggedTrackId = track.id;
+      document.body.classList.add('reordering');
+      item.classList.add('drag-source');
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('application/x-skiplet-track', String(track.id));
+      event.stopPropagation();
+    });
+    item.addEventListener('dragover', (event) => {
+      if (draggedTrackId === null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      item.classList.add('drag-target');
+      event.dataTransfer.dropEffect = 'move';
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-target'));
+    item.addEventListener('drop', (event) => {
+      if (draggedTrackId === null) return;
+      event.preventDefault();
+      event.stopPropagation();
+      reorderTrack(draggedTrackId, track.id);
+    });
+    item.addEventListener('dragend', () => {
+      draggedTrackId = null;
+      document.body.classList.remove('reordering');
+      renderPlaylist();
+    });
     playlistElement.append(item);
   });
+  updateQueueTime();
+}
+
+function reorderTrack(sourceId, targetId) {
+  const sourceIndex = playlist.findIndex((track) => track.id === sourceId);
+  const targetIndex = playlist.findIndex((track) => track.id === targetId);
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+  const currentId = playlist[currentTrackIndex]?.id;
+  const [moved] = playlist.splice(sourceIndex, 1);
+  playlist.splice(targetIndex, 0, moved);
+  currentTrackIndex = playlist.findIndex((track) => track.id === currentId);
+  draggedTrackId = null;
+  renderPlaylist();
+}
+
+function updateQueueTime() {
+  if (playlist.length === 0) {
+    queueElapsed.textContent = '0:00';
+    queueRemaining.textContent = '0:00';
+    queueTotal.textContent = '0:00';
+    return;
+  }
+  const durations = playlist.map((track) => track.duration);
+  const totalKnown = durations.every(Number.isFinite);
+  const previousDurations = currentTrackIndex > 0 ? durations.slice(0, currentTrackIndex) : [];
+  const elapsedKnown = previousDurations.every(Number.isFinite);
+  const elapsed = elapsedKnown
+    ? previousDurations.reduce((sum, value) => sum + value, 0) + (currentTrackIndex >= 0 ? audio.currentTime : 0)
+    : null;
+  const total = totalKnown ? durations.reduce((sum, value) => sum + value, 0) : null;
+  queueElapsed.textContent = elapsed === null ? '--:--' : formatTime(elapsed);
+  queueRemaining.textContent = total === null || elapsed === null ? '--:--' : formatTime(Math.max(0, total - elapsed));
+  queueTotal.textContent = total === null ? '계산 중…' : formatTime(total);
+}
+
+function probeDuration(track) {
+  const probe = document.createElement('audio');
+  probe.preload = 'metadata';
+  probe.addEventListener('loadedmetadata', () => {
+    track.duration = Number.isFinite(probe.duration) ? probe.duration : 0;
+    probe.removeAttribute('src');
+    updateQueueTime();
+  }, { once: true });
+  probe.addEventListener('error', () => {
+    track.duration = 0;
+    updateQueueTime();
+  }, { once: true });
+  probe.src = track.url;
 }
 
 function addTracks(tracks) {
   if (tracks.length === 0) return;
   const firstNewIndex = playlist.length;
-  const additions = tracks.map((track) => ({ id: nextTrackId++, ...track }));
+  const additions = tracks.map((track) => ({ id: nextTrackId++, duration: null, ...track }));
   for (const track of additions) recentlyAddedIds.add(track.id);
   playlist.push(...additions);
+  for (const track of additions) probeDuration(track);
   renderPlaylist();
   if (currentTrackIndex === -1) playTrack(firstNewIndex);
   window.setTimeout(() => {
@@ -220,6 +304,18 @@ function move(seconds) {
 openButton.addEventListener('click', async () => {
   const files = await window.playerAPI.chooseAudio();
   addTracks(files);
+});
+
+function applyAlwaysOnTop(value) {
+  const active = value === true;
+  pinButton.classList.toggle('active', active);
+  pinButton.setAttribute('aria-pressed', String(active));
+  pinButton.title = active ? '항상 맨 앞에 두기 해제' : '항상 맨 앞에 두기';
+}
+
+pinButton.addEventListener('click', async () => {
+  const result = await window.playerAPI.setAlwaysOnTop(pinButton.getAttribute('aria-pressed') !== 'true');
+  if (result.ok) applyAlwaysOnTop(result.alwaysOnTop);
 });
 
 document.querySelector('#previousTrack').addEventListener('click', () => playRelativeTrack(-1));
@@ -374,11 +470,14 @@ audio.addEventListener('ended', () => {
 audio.addEventListener('loadedmetadata', () => {
   seek.max = audio.duration;
   duration.textContent = formatTime(audio.duration);
+  if (playlist[currentTrackIndex]) playlist[currentTrackIndex].duration = audio.duration;
+  updateQueueTime();
 });
 
 audio.addEventListener('timeupdate', () => {
   seek.value = audio.currentTime;
   currentTime.textContent = formatTime(audio.currentTime);
+  updateQueueTime();
 });
 
 seek.addEventListener('input', () => {
@@ -387,6 +486,7 @@ seek.addEventListener('input', () => {
 
 for (const eventName of ['dragenter', 'dragover']) {
   document.addEventListener(eventName, (event) => {
+    if (draggedTrackId !== null) return;
     event.preventDefault();
     document.body.classList.add('dragging');
   });
@@ -394,12 +494,14 @@ for (const eventName of ['dragenter', 'dragover']) {
 
 for (const eventName of ['dragleave', 'drop']) {
   document.addEventListener(eventName, (event) => {
+    if (draggedTrackId !== null) return;
     event.preventDefault();
     if (eventName === 'drop' || event.relatedTarget === null) document.body.classList.remove('dragging');
   });
 }
 
 document.addEventListener('drop', (event) => {
+  if (draggedTrackId !== null) return;
   const supportedExtensions = ['mp3', 'm4a', 'wav', 'aac', 'ogg', 'flac'];
   const files = [...event.dataTransfer.files].filter((item) => {
     const extension = item.name.split('.').pop()?.toLowerCase();
@@ -423,4 +525,5 @@ window.playerAPI.getShortcuts().then(renderShortcuts);
 window.playerAPI.getGlobalShortcuts().then(renderGlobalShortcuts);
 window.playerAPI.getSeekSeconds().then(applySeekSeconds);
 window.playerAPI.getVolume().then(applyVolume);
+window.playerAPI.getAlwaysOnTop().then(applyAlwaysOnTop);
 renderPlaylist();
