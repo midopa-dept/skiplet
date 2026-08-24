@@ -1,18 +1,16 @@
 # Skiplet
 
-Skiplet은 macOS용 소형 오디오 플레이어입니다. 앱을 보고 있는 동안 키보드만으로 재생 위치와 볼륨을 빠르게 조절할 수 있습니다.
-
-> `feature/playlist` 브랜치는 재생목록 기능을 시험하는 `1.1.0-beta.0` 개발 버전입니다. 아래 `v1.0.0` 안정판 DMG에는 아직 재생목록 기능이 포함되지 않습니다.
+Skiplet은 macOS용 소형 오디오 플레이어입니다. 로컬 및 글로벌 단축키로 재생 위치와 볼륨을 빠르게 조절하고, 여러 오디오 파일을 재생목록으로 관리할 수 있습니다.
 
 ## 다운로드
 
-최신 안정 버전은 `v1.0.0`입니다. 자신의 Mac에 맞는 DMG를 내려받으세요.
+최신 안정 버전은 `v1.1.0`입니다. 자신의 Mac에 맞는 DMG를 내려받으세요.
 
 | 버전 | 대상 | 다운로드 |
 | --- | --- | --- |
-| Universal | Intel 및 Apple Silicon 모두 지원 | [Skiplet-1.0.0-universal.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-universal.dmg) |
-| Apple Silicon | M1, M2, M3, M4 등 | [Skiplet-1.0.0-arm64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-arm64.dmg) |
-| Intel | Intel 프로세서 Mac | [Skiplet-1.0.0-x64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.0.0/Skiplet-1.0.0-x64.dmg) |
+| Universal | Intel 및 Apple Silicon 모두 지원 | [Skiplet-1.1.0-universal.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-universal.dmg) |
+| Apple Silicon | M1, M2, M3, M4 등 | [Skiplet-1.1.0-arm64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-arm64.dmg) |
+| Intel | Intel 프로세서 Mac | [Skiplet-1.1.0-x64.dmg](https://github.com/midopa-dept/skiplet/releases/download/v1.1.0/Skiplet-1.1.0-x64.dmg) |
 
 Mac의 프로세서를 모르겠다면 화면 왼쪽 위의 Apple 메뉴에서 `이 Mac에 관하여`를 확인하거나 Universal 버전을 사용하세요.
 
@@ -28,13 +26,13 @@ DMG를 연 다음 `Skiplet.app`을 `Applications` 폴더로 드래그하면 설�
 - 재생, 일시정지 및 타임라인 탐색
 - 앞뒤 이동 간격 설정(기본 10초)
 - 볼륨 슬라이더 및 키보드 볼륨 조절
-- 사용자 지정 단축키
+- 서로 독립적으로 설정 가능한 로컬 및 글로벌 단축키
 - 이동 간격, 볼륨 및 단축키 설정 자동 저장
 - MP3, M4A, WAV, AAC, OGG, FLAC 지원
 
 ## 기본 단축키
 
-단축키는 Skiplet이 가장 앞에 있을 때만 작동합니다.
+로컬 단축키는 Skiplet이 가장 앞에 있을 때 작동합니다.
 
 | 기능 | 키 |
 | --- | --- |
@@ -44,13 +42,13 @@ DMG를 연 다음 `Skiplet.app`을 `Applications` 폴더로 드래그하면 설�
 | 볼륨 올리기 | `↑` |
 | 볼륨 내리기 | `↓` |
 
-앱 오른쪽 위의 설정 버튼에서 각 키를 변경할 수 있습니다.
+글로벌 단축키는 Skiplet이 뒤에 있어도 작동하며 기본값은 로컬 키에 `Command + Option`을 더한 조합입니다. 앱 오른쪽 위의 설정 버튼에서 로컬 키와 글로벌 키를 각각 변경할 수 있습니다. macOS 또는 다른 앱이 사용 중인 글로벌 조합은 저장되지 않습니다.
 
 ## 재생목록 사용
 
 `파일 열기`에서 여러 파일을 함께 선택하거나 Finder의 오디오 파일 여러 개를 Skiplet 창으로 드래그하면 기존 재생목록 뒤에 추가됩니다. 재생목록이 비어 있었다면 첫 번째 곡이 바로 재생됩니다.
 
-오른쪽 위의 재생목록 버튼에는 현재 곡 수가 표시됩니다. 버튼을 누르면 다음 작업을 할 수 있습니다.
+메인 화면의 재생목록에는 현재 곡 수가 표시되며 다음 작업을 할 수 있습니다.
 
 - 곡 이름을 눌러 해당 곡 즉시 재생
 - 이전 곡 또는 다음 곡으로 이동
@@ -210,9 +208,9 @@ npm run build:dmg:universal
 각 명령은 다음 파일을 `dist/`에 생성합니다.
 
 ```text
-dist/Skiplet-1.0.0-x64.dmg
-dist/Skiplet-1.0.0-arm64.dmg
-dist/Skiplet-1.0.0-universal.dmg
+dist/Skiplet-1.1.0-x64.dmg
+dist/Skiplet-1.1.0-arm64.dmg
+dist/Skiplet-1.1.0-universal.dmg
 ```
 
 모든 빌드를 연속으로 실행하려면 다음과 같이 실행합니다.
