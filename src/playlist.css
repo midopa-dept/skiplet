@@ -1,0 +1,101 @@
+.playlist-panel {
+  flex: 1 1 260px; min-height: 180px; display: flex; flex-direction: column;
+  margin-bottom: 10px; padding: 17px 18px 14px; overflow: hidden;
+  border: 1px solid #ffffff0d; border-radius: 14px; background: #1d1f1d;
+}
+.playlist-heading { display: flex; align-items: flex-start; justify-content: space-between; }
+.playlist-heading h2 { margin: 4px 0 0; color: #e9eae6; font-size: 14px; font-weight: 620; }
+.playlist-heading h2 span { margin-left: 5px; color: #737870; font-size: 11px; font-weight: 600; }
+.playlist-actions { display: flex; align-items: center; gap: 5px; margin: 11px 0 7px; }
+.playlist-actions button { height: 28px; display: grid; place-items: center; border-radius: 7px; color: #9da19a; background: #ffffff08; }
+.playlist-actions button:not(.clear-playlist) { width: 32px; }
+.playlist-actions button:hover { color: #f2f2ef; background: #ffffff10; }
+.playlist-actions svg { width: 15px; height: 15px; }
+.playlist-actions .clear-playlist { margin-left: auto; padding: 0 9px; color: #7c8179; font-size: 10px; }
+.playlist { flex: 1; min-height: 0; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.playlist-item { display: grid; grid-template-columns: 24px minmax(0,1fr) 28px; align-items: center; gap: 8px; min-height: 38px; border-bottom: 1px solid #ffffff08; color: #92968f; }
+.playlist-item.current { border-radius: 7px; color: #eff0eb; background: #c9ef6308; }
+.playlist-index { color: #62675f; font-size: 10px; font-variant-numeric: tabular-nums; text-align: center; }
+.playlist-item.current .playlist-index { color: #c9ef63; }
+.playlist-track { min-width: 0; padding: 7px 0; overflow: hidden; color: inherit; background: transparent; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.playlist-remove { width: 25px; height: 25px; border-radius: 7px; color: #62675f; background: transparent; font-size: 16px; line-height: 1; }
+.playlist-remove:hover { color: #ef8e86; background: #ffffff08; }
+.empty-playlist { margin: auto; max-width: 280px; color: #686d65; font-size: 11px; line-height: 1.6; text-align: center; }
+.playlist:not(:empty) + .empty-playlist { display: none; }
+
+/* Unified title area: the toolbar moves the frameless-looking native window. */
+.shell { padding: 14px 19px 12px; }
+.toolbar { min-height: 38px; padding-left: 70px; -webkit-app-region: drag; }
+.toolbar button, .toolbar input { -webkit-app-region: no-drag; }
+.brand { gap: 0; }
+.brand-mark { display: none; }
+.player { flex: 0 0 auto; min-height: 0; margin: 9px 0 10px; padding: 18px 22px 15px; }
+.track-row { min-height: 38px; }
+.timeline { margin-top: 14px; }
+.controls { margin-top: 9px; }
+.seek-step { margin-top: 9px; }
+.volume-row { margin-top: 7px; }
+footer { min-height: 17px; }
+
+.state-line { gap: 7px; }
+.state-line strong { padding: 3px 7px; border-radius: 5px; color: #989d95; background: #ffffff09; font-size: 9px; font-weight: 700; letter-spacing: .04em; }
+.equalizer { width: 13px; height: 12px; display: flex; align-items: flex-end; justify-content: space-between; }
+.equalizer i { width: 3px; height: 3px; border-radius: 1px; background: #666b63; }
+body.is-playing .state-line strong { color: #171817; background: #c9ef63; }
+body.is-playing .equalizer i { background: #c9ef63; animation: equalize .75s ease-in-out infinite alternate; }
+body.is-playing .equalizer i:nth-child(2) { animation-delay: -.35s; }
+body.is-playing .equalizer i:nth-child(3) { animation-delay: -.15s; }
+body.is-playing .player { border-color: #c9ef6338; box-shadow: inset 3px 0 #c9ef63; }
+@keyframes equalize { from { height: 3px; } to { height: 12px; } }
+
+/* Higher-contrast graphite, lime and cool-cyan palette. */
+body { color: #f4f7ef; background: #111310; }
+.player, .playlist-panel { border-color: #343a32; background: #191c18; }
+.brand { gap: 9px; }
+.brand-monogram { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #536047; border-radius: 8px; color: #111310; background: #b9e85b; box-shadow: 0 6px 18px #b9e85b18; font-size: 13px; font-weight: 850; }
+.brand-copy { display: flex; flex-direction: column; gap: 2px; }
+.brand-copy strong { color: #f5f8f1; font-size: 12px; font-weight: 760; letter-spacing: .12em; }
+.brand-copy small { color: #9fa89b; font-size: 7px; font-weight: 650; letter-spacing: .14em; }
+.icon-button { color: #b4bbb0; }
+.icon-button:hover { color: #ffffff; background: #ffffff12; }
+.open-button { color: #111310; background: #dce6d5; }
+.open-button:hover { background: #f2faed; }
+h1 { color: #f7f9f4; }
+.state-line, .times, .seek-step, .volume-row { color: #aeb5aa; }
+.state-line strong { color: #c2c9bd; background: #30362e; }
+.section-label { color: #9fa89b; }
+.playlist-heading h2 { color: #f0f3ec; }
+.playlist-heading h2 span { color: #aab2a5; }
+.playlist-actions button { color: #bac1b6; background: #2a2f28; }
+.playlist-actions .clear-playlist { color: #aeb5aa; }
+.playlist-item { border-bottom-color: #343a32; color: #c2c9bf; }
+.playlist-index, .playlist-remove { color: #929b8e; }
+.playlist-item.current { color: #ffffff; background: #b9e85b12; box-shadow: inset 3px 0 #b9e85b; }
+.playlist-item.added { animation: queue-added 1.3s ease-out; }
+.playlist-item.added:not(.current) { box-shadow: inset 3px 0 #70c7d4; background: #70c7d414; }
+.empty-playlist { color: #a1aa9d; }
+footer { color: #949d90; }
+kbd { border-color: #485046; color: #d7ddd3; background: #252a23; }
+input[type=range] { accent-color: #b9e85b; }
+.toggle { background: #b9e85b !important; }
+.toggle:hover { background: #ccf878 !important; }
+body.is-playing .state-line strong { color: #111310; background: #b9e85b; }
+body.is-playing .equalizer i { background: #b9e85b; }
+body.is-playing .player { border-color: #6f8c3d; box-shadow: inset 3px 0 #b9e85b; }
+@keyframes queue-added { 0% { outline: 1px solid #70c7d4; } 100% { outline-color: transparent; } }
+
+body.dragging .player { border-color: #343a32; background: #191c18; }
+body.dragging .playlist-panel { border-color: #70c7d4; background: #1b2422; box-shadow: inset 0 0 0 1px #70c7d466; }
+body.dragging .empty-playlist { color: #d5f5f7; }
+.shortcut-section { margin: 16px 0 5px; color: #dce2d8; font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+.shortcut-section.global-heading { padding-top: 13px; border-top: 1px solid #343a32; }
+.reset-global { margin-left: 14px; }
+dialog { max-height: calc(100vh - 32px); overflow-y: auto; }
+
+.controls { gap: 27px; }
+.controls .toggle { width: 48px; height: 48px; flex: 0 0 48px; }
+.controls .toggle svg { width: 20px; height: 20px; }
+.controls .skip-button { min-width: 58px; height: 38px; padding: 0 3px; }
+.controls .skip-button svg { width: 21px; height: 21px; overflow: visible; }
+dialog { max-height: calc(100vh - 92px); }
+dialog[open] { transform: translateY(22px); }
