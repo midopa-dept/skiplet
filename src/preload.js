@@ -12,5 +12,7 @@ contextBridge.exposeInMainWorld('playerAPI', {
   setSeekSeconds: (seconds) => ipcRenderer.invoke('set-seek-seconds', seconds),
   getVolume: () => ipcRenderer.invoke('get-volume'),
   setVolume: (volume) => ipcRenderer.invoke('set-volume', volume),
+  getAlwaysOnTop: () => ipcRenderer.invoke('get-always-on-top'),
+  setAlwaysOnTop: (value) => ipcRenderer.invoke('set-always-on-top', value),
   onGlobalShortcut: (callback) => ipcRenderer.on('global-shortcut', (_event, command) => callback(command))
 });
